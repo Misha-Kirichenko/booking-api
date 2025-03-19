@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  booking-api-db:
+    restart: on-failure
+    image: postgres:latest
+    container_name: booking-api-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: bookingApiDb
+    volumes:
+      - bookingApiDb:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    networks:
+      - booking_api_network
+
+  booking-api-rmq:
+    restart: on-failure
+    image: rabbitmq:3-management
+    container_name: booking-api-rmq
+    env_file:
+      - .env
+    ports:
+      - ${RMQ_MNG_PORT}:${RMQ_MNG_PORT}
+      - ${RMQ_MSG_PORT}:${RMQ_MSG_PORT}
+    networks:
+      - booking_api_network
+
+  booking:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: booking
+    env_file:
+      - .env
+    environment:
+      PORT: ${BOOKING_PORT}
+      POSTGRES_HOST: booking-api-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: bookingApiDb
+      RABBITMQ_HOST: booking-api-rmq
+    ports:
+      - ${BOOKING_PORT}:${BOOKING_PORT}
+    depends_on:
+      - booking-api-db
+      - booking-api-rmq
+    networks:
+      - booking_api_network
+    command: npx nx run booking:serve
+
+  notification:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notification
+    env_file:
+      - .env
+    environment:
+      PORT: ${NOTIFICATION_PORT}
+      RABBITMQ_HOST: booking-api-rmq
+    ports:
+      - ${NOTIFICATION_PORT}:${NOTIFICATION_PORT}
+    depends_on:
+      - booking-api-rmq
+    networks:
+      - booking_api_network
+    command: npx nx run notification:serve
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      PORT: ${API_GATEWAY_PORT}
+      BOOKING_SERVICE_URL: http://booking:${BOOKING_PORT}
+      NOTIFICATION_SERVICE_URL: http://notification:${NOTIFICATION_PORT}
+    env_file:
+      - .env
+    ports:
+      - ${API_GATEWAY_PORT}:${API_GATEWAY_PORT}
+    depends_on:
+      - booking
+      - notification
+      - booking-api-rmq
+    networks:
+      - booking_api_network
+    command: npx nx run api-gateway:serve
+
+networks:
+  booking_api_network:
+
+volumes:
+  bookingApiDb:
