@@ -53,24 +53,6 @@ services:
       - booking_api_network
     command: npx nx run booking:serve
 
-  notification:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: notification
-    env_file:
-      - .env
-    environment:
-      PORT: ${NOTIFICATION_PORT}
-      RABBITMQ_HOST: booking-api-rmq
-    ports:
-      - ${NOTIFICATION_PORT}:${NOTIFICATION_PORT}
-    depends_on:
-      - booking-api-rmq
-    networks:
-      - booking_api_network
-    command: npx nx run notification:serve
-
   api-gateway:
     build:
       context: .
@@ -79,14 +61,12 @@ services:
     environment:
       PORT: ${API_GATEWAY_PORT}
       BOOKING_SERVICE_URL: http://booking:${BOOKING_PORT}
-      NOTIFICATION_SERVICE_URL: http://notification:${NOTIFICATION_PORT}
     env_file:
       - .env
     ports:
       - ${API_GATEWAY_PORT}:${API_GATEWAY_PORT}
     depends_on:
       - booking
-      - notification
       - booking-api-rmq
     networks:
       - booking_api_network
