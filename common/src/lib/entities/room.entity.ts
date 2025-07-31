@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { OverridePrice } from './override-price.entity';
+import { Booking } from './booking.entity';
 
 @Entity('rooms')
 export class Room {
@@ -31,4 +32,9 @@ export class Room {
     cascade: ['remove'],
   })
   overridePrices: OverridePrice[];
+
+  @OneToMany(() => Booking, (bookings) => bookings.room, {
+    cascade: ['remove'],
+  })
+  bookings: Booking[];
 }

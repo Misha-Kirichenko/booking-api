@@ -26,11 +26,12 @@ services:
       - .env
     ports:
       - ${RMQ_MNG_PORT}:${RMQ_MNG_PORT}
-      - ${RMQ_MSG_PORT}:${RMQ_MSG_PORT}
+      - ${RMQ_MSG_PORT}
     networks:
       - booking_api_network
 
   booking:
+    restart: on-failure
     build:
       context: .
       dockerfile: Dockerfile
@@ -53,21 +54,51 @@ services:
       - booking_api_network
     command: npx nx run booking:serve
 
+  accounts:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: accounts
+    env_file:
+      - .env
+    environment:
+      PORT: ${ACCOUNTS_PORT}
+      POSTGRES_HOST: booking-api-db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: bookingApiDb
+      RABBITMQ_HOST: booking-api-rmq
+    ports:
+      - ${ACCOUNTS_PORT}:${ACCOUNTS_PORT}
+    depends_on:
+      - booking-api-db
+      - booking-api-rmq
+    networks:
+      - booking_api_network
+    command: npx nx run accounts:serve
+
   api-gateway:
+    restart: on-failure
     build:
       context: .
       dockerfile: Dockerfile
     container_name: api-gateway
     environment:
       PORT: ${API_GATEWAY_PORT}
-      BOOKING_SERVICE_URL: http://booking:${BOOKING_PORT}
+      BOOKING_PORT: ${BOOKING_PORT}
+      ACCOUNTS_PORT: ${ACCOUNTS_PORT}
+      ACCESS_TOKEN_SECRET: ${ACCESS_TOKEN_SECRET}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET}
+      ACCESS_TOKEN_EXPIRE_TIME: ${ACCESS_TOKEN_EXPIRE_TIME}
+      REFRESH_TOKEN_EXPIRE_TIME: ${REFRESH_TOKEN_EXPIRE_TIME}
     env_file:
       - .env
     ports:
       - ${API_GATEWAY_PORT}:${API_GATEWAY_PORT}
     depends_on:
       - booking
-      - booking-api-rmq
+      - accounts
     networks:
       - booking_api_network
     command: npx nx run api-gateway:serve

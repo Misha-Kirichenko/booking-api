@@ -3,11 +3,13 @@ import { RoomsController } from './rooms.controller';
 import { RoomsService } from './rooms.service';
 import { RoomsSeederService } from './rooms-seeder.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Room } from '../db/entities/room.entity';
-import { OverridePrice } from '../db/entities/override-price.entity';
+import { ENTITIES } from '@common';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Room, OverridePrice])],
+  imports: [TypeOrmModule.forFeature([
+    ENTITIES.Room,
+    ENTITIES.OverridePrice,
+  ])],
   controllers: [RoomsController],
   providers: [RoomsService, RoomsSeederService],
 })

@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { BookingController } from './controllers/booking.controller';
-import { BookingService } from './services';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
+import { ProxyService } from './proxy.service';
+import { JwtService } from '@nestjs/jwt';
+import { AccountsController } from './controllers/accounts.controller';
 
 @Module({
   imports: [
@@ -11,7 +13,7 @@ import { HttpModule } from '@nestjs/axios';
       isGlobal: true,
     }),
   ],
-  controllers: [BookingController],
-  providers: [BookingService],
+  controllers: [AccountsController, BookingController],
+  providers: [ProxyService, JwtService],
 })
 export class AppModule { }

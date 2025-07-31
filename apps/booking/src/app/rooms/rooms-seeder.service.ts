@@ -1,64 +1,49 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Room } from "../db/entities/room.entity";
+import { ENTITIES, INTERFACES } from "@common";
 import { Repository } from "typeorm";
-import { OverridePrice } from "../db/entities/override-price.entity";
 import { faker } from '@faker-js/faker';
 
+
 @Injectable()
-export class RoomsSeederService {
+export class RoomsSeederService implements INTERFACES.ISeederService {
   private ovverridePricesToSeed: number;
   constructor(
-    @InjectRepository(Room)
-    private readonly roomRepo: Repository<Room>,
-    @InjectRepository(OverridePrice)
-    private readonly overridePriceRepo: Repository<OverridePrice>,
+    @InjectRepository(ENTITIES.Room)
+    private readonly roomRepo: Repository<ENTITIES.Room>,
+    @InjectRepository(ENTITIES.OverridePrice)
+    private readonly overridePriceRepo: Repository<ENTITIES.OverridePrice>,
   ) {
     this.ovverridePricesToSeed = 10;
   }
 
-  private async seedRooms(quantity: number): Promise<Room[]> {
+  private async generateRooms(quantity: number): Promise<ENTITIES.Room[]> {
     const existing = await this.roomRepo.count();
     if (existing >= quantity) return [];
 
-    const tags = [
-      'hotel,room',
-      'bedroom,interior',
-      'luxury,hotel',
-      'minimalist,room',
-      'cozy,bedroom',
-      'modern,hotel',
-      'mountain,view,hotel',
-      'bright,interior',
-      'design,bedroom',
-      'hotel,bathroom',
-    ];
-
-    const rooms: Room[] = [];
+    const roomsEntities: ENTITIES.Room[] = [];
 
     for (let i = 1; i <= quantity; i++) {
-      const tag = tags[i % tags.length];
-      const sigBase = i * 10;
 
       const room = this.roomRepo.create({
         num: i,
         price: parseFloat((100 + Math.random() * 100).toFixed(2)),
         description: faker.lorem.paragraph(),
 
-        img_1: `https://source.unsplash.com/640x480/?${tag}&sig=${sigBase + 1}`,
-        img_2: `https://source.unsplash.com/640x480/?${tag}&sig=${sigBase + 2}`,
-        img_3: `https://source.unsplash.com/640x480/?${tag}&sig=${sigBase + 3}`,
-        img_4: `https://source.unsplash.com/640x480/?${tag}&sig=${sigBase + 4}`,
+        img_1: faker.image.urlLoremFlickr({ category: 'city' }),
+        img_2: faker.image.urlLoremFlickr({ category: 'city' }),
+        img_3: faker.image.urlLoremFlickr({ category: 'city' }),
+        img_4: faker.image.urlLoremFlickr({ category: 'city' }),
       });
 
-      rooms.push(room);
+      roomsEntities.push(room);
     }
 
-    return await this.roomRepo.save(rooms);
+    return roomsEntities;
   }
 
-  private async seedOverridePrices(rooms: Room[]): Promise<void> {
-    const overridePrices: OverridePrice[] = [];
+  private async generateOverridePrices(rooms: ENTITIES.Room[]): Promise<ENTITIES.OverridePrice[]> {
+    const overridePriceEntities: ENTITIES.OverridePrice[] = [];
 
     for (const room of rooms) {
       for (let i = 0; i < this.ovverridePricesToSeed; i++) {
@@ -69,22 +54,27 @@ export class RoomsSeederService {
           reason: faker.lorem.words({ min: 1, max: 3 }),
           room: room,
         });
-        overridePrices.push(override);
+        overridePriceEntities.push(override);
       }
     }
 
-    await this.overridePriceRepo.save(overridePrices);
+    return overridePriceEntities;
   }
 
-  public async seed(quantity = 100): Promise<void> {
+  public async getGeneratedRows<T>(quantity: number): Promise<T> {
+    let overridePriceEntities: ENTITIES.OverridePrice[] = [];
+    const roomsEntities = await this.generateRooms(quantity);
+    if (roomsEntities.length === 0) {
+      overridePriceEntities = await this.generateOverridePrices(roomsEntities);
+    }
+    return { roomsEntities, overridePriceEntities } as T;
+  }
+
+  public async seed(quantity: number): Promise<void> {
     try {
-      const rooms = await this.seedRooms(quantity);
-      if (rooms.length > 0) {
-        await this.seedOverridePrices(rooms);
-        console.log(`✅ Seeded ${rooms.length} rooms and override prices.`);
-      } else {
-        console.log('ℹ️ Rooms already exist, skipping seeding.');
-      }
+      const { roomsEntities, overridePriceEntities } = await this.getGeneratedRows<{ roomsEntities: ENTITIES.Room[], overridePriceEntities: ENTITIES.OverridePrice[] }>(quantity);
+      if (roomsEntities.length) await this.roomRepo.save(roomsEntities);
+      if (overridePriceEntities.length) await this.overridePriceRepo.save(overridePriceEntities);
     } catch (error) {
       console.error("❌ Rooms seeder error", error);
     }

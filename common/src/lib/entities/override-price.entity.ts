@@ -6,7 +6,7 @@ import { Room } from './room.entity';
 @Entity('override_prices')
 export class OverridePrice {
   @PrimaryGeneratedColumn()
-  id: string;
+  id: number;
 
   @Column({ type: 'date', nullable: false })
   day: string;
@@ -17,7 +17,7 @@ export class OverridePrice {
   @Column({ type: 'varchar', nullable: false, length: 100 })
   reason: string;
 
-  @Column()
+  @Column({ type: 'integer', nullable: false })
   room_id: number;
 
   @ManyToOne(() => Room, (room) => room.overridePrices, {
