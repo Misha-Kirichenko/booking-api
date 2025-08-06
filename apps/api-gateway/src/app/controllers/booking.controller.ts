@@ -1,6 +1,6 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Req, UseGuards } from '@nestjs/common';
 import { ProxyService } from '../proxy.service';
-import { DTO } from '@common';
+import { DTO, INTERFACES } from '@common';
 import { Serialize } from '../decorators';
 import { IProxyData } from '../interfaces';
 import { ServiceName } from '../enums/serviceName.enum';
@@ -11,7 +11,6 @@ import { AuthGuard } from '../guards';
 export class BookingController {
   constructor(private readonly proxyService: ProxyService) { }
 
-  @UseGuards(AuthGuard)
   @Serialize(DTO.ROOMS.RoomBaseDTO)
   @Get("/rooms")
   getAllRooms(): Promise<DTO.ROOMS.RoomBaseDTO[]> {
@@ -27,11 +26,12 @@ export class BookingController {
   @UseGuards(AuthGuard)
   @Serialize(DTO.ROOMS.RoomDTO)
   @Get('/rooms/:num')
-  getRoom(@Param('num', ParseIntPipe) num: number): Promise<DTO.ROOMS.RoomDTO> {
+  getRoom(@Req() req: INTERFACES.IAuthorizedRequest, @Param('num', ParseIntPipe) num: number): Promise<DTO.ROOMS.RoomDTO> {
     const proxyData: IProxyData = {
       url: `rooms/${num}`,
       method: 'GET',
       serviceName: ServiceName.BOOKING,
+      headers: req.headers
     };
 
     return this.proxyService.handle<DTO.ROOMS.RoomDTO>(proxyData);

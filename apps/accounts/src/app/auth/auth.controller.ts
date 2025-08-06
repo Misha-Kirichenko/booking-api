@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Headers, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { INTERFACES } from '@common';
 import { LoginDTO } from './dto/login.dto';
 import { ITokensPair } from './interfaces';
 
@@ -15,8 +14,7 @@ export class AuthController {
   }
 
   @Get('/refresh')
-  refresh(@Headers('x-user-data') userData: string): Promise<ITokensPair> {
-    const parsedUserData: INTERFACES.ITokenPayload = JSON.parse(userData);
-    return this.authService.generateRefreshToken(parsedUserData);
+  refresh(@Headers() headers: Record<string, any>): Promise<ITokensPair> {
+    return this.authService.refreshToken(headers);
   }
 }

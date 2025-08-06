@@ -1,6 +1,6 @@
-import { Controller, Get, Param } from "@nestjs/common";
+import { Controller, Get, Param, UseGuards } from "@nestjs/common";
 import { RoomsService } from "./rooms.service";
-import { DTO } from '@common';
+import { DTO, GUARDS } from '@common';
 
 
 @Controller('rooms')
@@ -12,6 +12,7 @@ export class RoomsController {
     return this.roomsService.getRoomsList();
   }
 
+  @UseGuards(GUARDS.IsBlockedGuard)
   @Get("/:num")
   getRooms(@Param('num') num: number): Promise<DTO.ROOMS.RoomDTO> {
     return this.roomsService.getRoom(num);

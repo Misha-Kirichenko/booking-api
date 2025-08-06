@@ -5,3 +5,5 @@ export * as MODULES from './lib/modules';
 export * as ENTITIES from './lib/entities';
 export * as ENUMS from './lib/enums';
 export * as INTERFACES from './lib/interfaces';
+export * as GUARDS from './lib/guards';
+export * as MIDDLEWARES from './lib/middlewares';

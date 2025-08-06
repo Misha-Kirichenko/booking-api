@@ -4,9 +4,10 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { INTERFACES } from '@common';
+import { UTILS } from '@common';
+
+const { extractTokenFromHeader } = UTILS;
 
 @Injectable()
 export class BaseAuthGuard implements CanActivate {
@@ -18,33 +19,21 @@ export class BaseAuthGuard implements CanActivate {
   }
 
   public async canActivate(context: ExecutionContext): Promise<boolean> {
-    let payload: INTERFACES.ITokenPayload;
-
     const request = context.switchToHttp().getRequest();
-    const token = this.extractTokenFromHeader(request, 'Bearer');
+    const token = extractTokenFromHeader(request.headers, 'Bearer');
 
     if (!token) {
       throw new UnauthorizedException();
     }
 
     try {
-      payload = await this.jwtService.verifyAsync(token, {
+      await this.jwtService.verifyAsync(token, {
         secret: this.secret,
       });
     } catch (_) {
       throw new UnauthorizedException();
     }
 
-    request['user'] = payload;
-
     return true;
   }
-
-  private extractTokenFromHeader(
-    request: Request,
-    requestedType: string,
-  ): string | undefined {
-    const [type, token] = request.headers.authorization?.split(' ') ?? [];
-    return type === requestedType ? token : undefined;
-  };
 }

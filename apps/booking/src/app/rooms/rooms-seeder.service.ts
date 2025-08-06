@@ -10,22 +10,22 @@ export class RoomsSeederService implements INTERFACES.ISeederService {
   private ovverridePricesToSeed: number;
   constructor(
     @InjectRepository(ENTITIES.Room)
-    private readonly roomRepo: Repository<ENTITIES.Room>,
+    private readonly roomRepository: Repository<ENTITIES.Room>,
     @InjectRepository(ENTITIES.OverridePrice)
-    private readonly overridePriceRepo: Repository<ENTITIES.OverridePrice>,
+    private readonly overridePriceRepository: Repository<ENTITIES.OverridePrice>,
   ) {
     this.ovverridePricesToSeed = 10;
   }
 
   private async generateRooms(quantity: number): Promise<ENTITIES.Room[]> {
-    const existing = await this.roomRepo.count();
+    const existing = await this.roomRepository.count();
     if (existing >= quantity) return [];
 
     const roomsEntities: ENTITIES.Room[] = [];
 
     for (let i = 1; i <= quantity; i++) {
 
-      const room = this.roomRepo.create({
+      const room = this.roomRepository.create({
         num: i,
         price: parseFloat((100 + Math.random() * 100).toFixed(2)),
         description: faker.lorem.paragraph(),
@@ -42,17 +42,17 @@ export class RoomsSeederService implements INTERFACES.ISeederService {
     return roomsEntities;
   }
 
-  private async generateOverridePrices(rooms: ENTITIES.Room[]): Promise<ENTITIES.OverridePrice[]> {
+  private generateOverridePrices(rooms: ENTITIES.Room[]): ENTITIES.OverridePrice[] {
     const overridePriceEntities: ENTITIES.OverridePrice[] = [];
 
     for (const room of rooms) {
       for (let i = 0; i < this.ovverridePricesToSeed; i++) {
         const futureDate = faker.date.soon({ days: 60 });
-        const override = this.overridePriceRepo.create({
+        const override = this.overridePriceRepository.create({
           day: futureDate.toISOString().split('T')[0],
           price: parseFloat((room.price + Math.random() * 50).toFixed(2)),
           reason: faker.lorem.words({ min: 1, max: 3 }),
-          room: room,
+          room: { id: room.id },
         });
         overridePriceEntities.push(override);
       }
@@ -64,19 +64,26 @@ export class RoomsSeederService implements INTERFACES.ISeederService {
   public async getGeneratedRows<T>(quantity: number): Promise<T> {
     let overridePriceEntities: ENTITIES.OverridePrice[] = [];
     const roomsEntities = await this.generateRooms(quantity);
-    if (roomsEntities.length === 0) {
-      overridePriceEntities = await this.generateOverridePrices(roomsEntities);
+    if (roomsEntities.length) {
+      overridePriceEntities = this.generateOverridePrices(roomsEntities);
     }
     return { roomsEntities, overridePriceEntities } as T;
   }
 
   public async seed(quantity: number): Promise<void> {
     try {
-      const { roomsEntities, overridePriceEntities } = await this.getGeneratedRows<{ roomsEntities: ENTITIES.Room[], overridePriceEntities: ENTITIES.OverridePrice[] }>(quantity);
-      if (roomsEntities.length) await this.roomRepo.save(roomsEntities);
-      if (overridePriceEntities.length) await this.overridePriceRepo.save(overridePriceEntities);
+      const roomsEntities = await this.generateRooms(quantity);
+      if (!roomsEntities.length) return;
+      const savedRooms = await this.roomRepository.save(roomsEntities);
+      const overridePriceEntities = this.generateOverridePrices(savedRooms);
+
+      if (overridePriceEntities.length) {
+        await this.overridePriceRepository.save(overridePriceEntities);
+      }
+
     } catch (error) {
       console.error("❌ Rooms seeder error", error);
     }
   }
+
 }

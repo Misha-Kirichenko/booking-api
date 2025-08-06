@@ -28,7 +28,7 @@ export class AccountsController {
       url: 'auth/refresh',
       method: 'GET',
       headers: {
-        'x-user-data': JSON.stringify(req.user),
+        authorization: req.headers.authorization,
       },
       serviceName: ServiceName.ACCOUNTS,
     };
