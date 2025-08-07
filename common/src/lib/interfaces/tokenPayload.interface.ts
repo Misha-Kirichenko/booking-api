@@ -1,7 +1,7 @@
 import { Role } from "../enums";
 
 export interface ITokenPayload {
-  readonly id: number;
+  readonly id: string;
   readonly email: string;
   readonly role: Role;
   readonly name: string;

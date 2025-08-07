@@ -17,5 +17,5 @@ export class RoomDTO extends RoomBaseDTO {
 
   @Expose()
   @Type(() => OverridePriceDTO)
-  overridePrices: OverridePriceDTO[];
+  override_prices: OverridePriceDTO[];
 }

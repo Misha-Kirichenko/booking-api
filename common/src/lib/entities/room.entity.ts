@@ -31,7 +31,7 @@ export class Room {
   @OneToMany(() => OverridePrice, (overridePrice) => overridePrice.room, {
     cascade: ['remove'],
   })
-  overridePrices: OverridePrice[];
+  override_prices: OverridePrice[];
 
   @OneToMany(() => Booking, (bookings) => bookings.room, {
     cascade: ['remove'],

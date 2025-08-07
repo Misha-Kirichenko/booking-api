@@ -4,7 +4,6 @@ import { ENTITIES, INTERFACES } from "@common";
 import { Repository } from "typeorm";
 import { faker } from '@faker-js/faker';
 
-
 @Injectable()
 export class RoomsSeederService implements INTERFACES.ISeederService {
   private ovverridePricesToSeed: number;
@@ -42,7 +41,7 @@ export class RoomsSeederService implements INTERFACES.ISeederService {
     return roomsEntities;
   }
 
-  private generateOverridePrices(rooms: ENTITIES.Room[]): ENTITIES.OverridePrice[] {
+  private generateoverride_prices(rooms: ENTITIES.Room[]): ENTITIES.OverridePrice[] {
     const overridePriceEntities: ENTITIES.OverridePrice[] = [];
 
     for (const room of rooms) {
@@ -65,7 +64,7 @@ export class RoomsSeederService implements INTERFACES.ISeederService {
     let overridePriceEntities: ENTITIES.OverridePrice[] = [];
     const roomsEntities = await this.generateRooms(quantity);
     if (roomsEntities.length) {
-      overridePriceEntities = this.generateOverridePrices(roomsEntities);
+      overridePriceEntities = this.generateoverride_prices(roomsEntities);
     }
     return { roomsEntities, overridePriceEntities } as T;
   }
@@ -75,12 +74,11 @@ export class RoomsSeederService implements INTERFACES.ISeederService {
       const roomsEntities = await this.generateRooms(quantity);
       if (!roomsEntities.length) return;
       const savedRooms = await this.roomRepository.save(roomsEntities);
-      const overridePriceEntities = this.generateOverridePrices(savedRooms);
+      const overridePriceEntities = this.generateoverride_prices(savedRooms);
 
       if (overridePriceEntities.length) {
         await this.overridePriceRepository.save(overridePriceEntities);
       }
-
     } catch (error) {
       console.error("❌ Rooms seeder error", error);
     }

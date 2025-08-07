@@ -8,5 +8,5 @@ export class OverridePriceDTO {
   price: number;
 
   @Expose()
-  reason: string;
+  reason?: string;
 }

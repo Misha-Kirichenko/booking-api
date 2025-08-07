@@ -26,7 +26,7 @@ export class RoomsService {
   public async getRoom(num: number): Promise<ENTITIES.Room> {
     const room = await this.roomRepository.findOne({
       where: { num },
-      relations: ['overridePrices'],
+      relations: ['override_prices'],
     });
 
     if (!room) {

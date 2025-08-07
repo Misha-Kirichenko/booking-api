@@ -20,7 +20,7 @@ export class OverridePrice {
   @Column({ type: 'integer', nullable: false })
   room_id: number;
 
-  @ManyToOne(() => Room, (room) => room.overridePrices, {
+  @ManyToOne(() => Room, (room) => room.override_prices, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'room_id' })

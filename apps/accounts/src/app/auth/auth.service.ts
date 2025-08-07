@@ -57,7 +57,7 @@ export class AuthService {
     }
 
     if (foundUser.blocked) {
-      const blockMessage = foundUser.blockReason ? RES_MESSAGE.ERROR.BLOCKED(foundUser.blockReason) : RES_MESSAGES.ERROR.BLOCKED;
+      const blockMessage = foundUser.block_reason ? RES_MESSAGE.ERROR.BLOCKED(foundUser.block_reason) : RES_MESSAGES.ERROR.BLOCKED;
       throw new ForbiddenException(blockMessage);
     }
 
@@ -65,7 +65,7 @@ export class AuthService {
 
     if (passwordsMatch) {
       const tokensPair = await this.generateTokenPairs(foundUser);
-      foundUser.lastLogin = Date.now();
+      foundUser.last_login = Date.now();
       await this.userRepository.save(foundUser);
       return tokensPair;
     }
@@ -81,11 +81,11 @@ export class AuthService {
     const foundUser = await this.userRepository.findOneBy({ id: tokenPayload.id });
 
     if (foundUser.blocked) {
-      const blockMessage = foundUser.blockReason ? RES_MESSAGE.ERROR.BLOCKED(foundUser.blockReason) : RES_MESSAGES.ERROR.BLOCKED;
+      const blockMessage = foundUser.block_reason ? RES_MESSAGE.ERROR.BLOCKED(foundUser.block_reason) : RES_MESSAGES.ERROR.BLOCKED;
       throw new ForbiddenException(blockMessage);
     }
 
-    foundUser.lastLogin = Date.now();
+    foundUser.last_login = Date.now();
     await this.userRepository.save(foundUser);
 
     const tokensPair = await this.generateTokenPairs(tokenPayload);

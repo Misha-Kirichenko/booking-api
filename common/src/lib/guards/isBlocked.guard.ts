@@ -31,7 +31,7 @@ export class IsBlockedGuard implements CanActivate {
     }
 
     if (foundUser.blocked) {
-      const blockMessage = foundUser.blockReason ? RES_MESSAGE.ERROR.BLOCKED(foundUser.blockReason) : RES_MESSAGES.ERROR.BLOCKED;
+      const blockMessage = foundUser.block_reason ? RES_MESSAGE.ERROR.BLOCKED(foundUser.block_reason) : RES_MESSAGES.ERROR.BLOCKED;
       throw new ForbiddenException(blockMessage);
     }
 

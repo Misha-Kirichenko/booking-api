@@ -7,3 +7,4 @@ export * as ENUMS from './lib/enums';
 export * as INTERFACES from './lib/interfaces';
 export * as GUARDS from './lib/guards';
 export * as MIDDLEWARES from './lib/middlewares';
+export * as DECORATORS from './lib/decorators';

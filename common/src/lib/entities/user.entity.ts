@@ -4,8 +4,8 @@ import { Booking } from './booking.entity';
 
 @Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @Column({ type: 'varchar', nullable: false })
   name: string;
@@ -26,7 +26,7 @@ export class User {
   blocked: boolean | null;
 
   @Column({ type: 'varchar', nullable: true, unique: false, default: null })
-  blockReason: string;
+  block_reason: string;
 
   @OneToMany(() => Booking, (booking) => booking.user, {
     cascade: ['remove'],
@@ -34,5 +34,5 @@ export class User {
   bookings: Booking[];
 
   @Column({ type: 'bigint', nullable: false, default: 0 })
-  lastLogin: number;
+  last_login: number;
 }
